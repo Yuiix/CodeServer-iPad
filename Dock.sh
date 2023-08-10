@@ -27,7 +27,9 @@ else
 	echo "wrong command, you maybe want to use one of the following comands, 
 	create, start and stop"
 fi
-# TODO add the dirs for share the files
-# TODO add them into the docker file so it gets created here and in the docker
-# TODO upload to github the dockerfile
-# TODO add the rutine for automatic DL of git hub and copy all the necessary
+# TODO add the volum for code
+# TODO add the posibility for the secure certificate
+# TODO add the file for the password and certificate if they want to
+# TODO add more ports to expose if they want to
+# TODO create a utility docker for any other tool needed that wont affect the server
+# TODO Add an option for automatic configuration right after boot theRPI or any linux machine
