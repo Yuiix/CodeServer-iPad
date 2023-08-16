@@ -23,7 +23,10 @@ RUN set -ex;\
 	cat config.yaml;\
 	sed -i 's/^bind-addr:.*/bind-addr: 0.0.0.0:8080/' config.yaml;\
 	sed -i 's/^auth:.*/auth: none/' config.yaml;\
-	sed -i 's/^password:.*/password: none/' config.yaml
+	sed -i 's/^password:.*/password: none/' config.yaml;\
+	sed -i 's/^cert: .*/cert: false/' config.yaml;\
+	echo 'cert-host: ' >> config.yaml;\
+	cat config.yaml
 
 CMD ["code-server"]
 	
