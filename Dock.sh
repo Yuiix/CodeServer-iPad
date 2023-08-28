@@ -1,9 +1,37 @@
 #!/bin/bash
-#This part will download the repository with the bash script and docker file
 comand_var="$1"
 server_image="code-server-image"
-container_id=$(docker ps -a | grep "$server_image" | awk '{print $1}')
 host_name=$(hostname)
+docker -v > /dev/null 2>&1
+#This part of the code will check id docker is present and install it otherwise
+if [ "$?" = 0 ]; then 
+	echo "The script is runing"
+else
+	echo "Seems like you dont have Docker installed, would you like to install it y/n?"
+	read install_docker
+		if [ "$install_docker" = "y" ]; then
+			echo "installing Docker...."
+			sudo apt-get update > /dev/null 2>&1
+			sudo apt install docker.io -y > /dev/null 2>&1
+			docker -v > /dev/null 2>&1
+			if [ "$?" = 0 ]; then
+				echo "the installation has been succesfull, the script will continue"
+				systemctl start docker > /dev/null 2>&1
+				sudo gpasswd -a $USER docker
+			else
+				echo "the installation failed you may want to try manually"
+				exit 1			
+			fi
+
+		else
+			echo "you need to install docker before running this script"
+			echo "The script has finished due the need of docker installation, you maybe want to install it manually"
+			exit 1
+		fi
+fi
+#This part of the code will create/start and stop the code server, including the options of the certificate and password
+
+container_id=$(docker ps -a | grep "$server_image" | awk '{print $1}')
 if [ "$comand_var" = "create" ]; then
 	echo "would you like to create a password for your server? y/n"
 	read pw_confirmation
@@ -25,12 +53,13 @@ if [ "$comand_var" = "create" ]; then
 		echo "you did not introduce a valid option the password has been set to none"
 	fi
 	if [ "$sec_certi" = "y" ]; then
+		echo "the certification file will be generated" 
 		sed -i "s|cert: fa.*|cert: true/' config.yaml;\\\\|" $HOME/CodeServer/DockFile/Dockerfile
 		sed -i "s|cert-host: .*|cert-host: $(hostname).local' >> config.yaml;\\\\|" $HOME/CodeServer/DockFile/Dockerfile
 	else
 		echo "Certification file wont be generated"
 	fi
-	cat $HOME/CodeServer/DockFile/Dockerfile
+	#cat $HOME/CodeServer/DockFile/Dockerfile
 	docker build -t code-server-image $HOME/CodeServer/DockFile
 # This part of the code is to start the sever
 elif [ "$comand_var" = "start" ]; then
@@ -42,8 +71,8 @@ elif [ "$comand_var" = "stop" ]; then
 	if [ -n "$container_id" ]; then
 		echo "The container with the ID: $container_id will be stop"
 		docker stop "$container_id"
-		docker rm --force "$container_id"
-		echo "$?"
+		#docker rm --force "$container_id"
+		#echo "$?"
 		if [ "$?" = 1 ]; then
 			echo "the container was already removed"
 		fi
@@ -56,9 +85,7 @@ else
 	echo "wrong command, you maybe want to use one of the following comands, 
 	create, start and stop"
 fi
-# TODO verify the docker version and hw to install the correct version
-# TODO add the posibility for the secure certificate
-# TODO add the file for the password and certificate if they want to
+# TODO Copy the certificate to other location
 # TODO add more ports to expose if they want to
 # TODO create a utility docker for any other tool needed that wont affect the server
 # TODO create the script that will generate that docker file

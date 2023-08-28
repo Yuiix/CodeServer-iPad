@@ -17,7 +17,7 @@ RUN \
 #create the directory for the server
 #WORKDIR /BearCS##
 RUN set -ex;\
-	code-server --version;\
+	code-server --version > /dev/null 2>&1;\
 	cd ~/.config/code-server/;\
 	ls -la;\
 	cat config.yaml;\
@@ -26,7 +26,8 @@ RUN set -ex;\
 	sed -i 's/^password:.*/password: none/' config.yaml;\
 	sed -i 's/^cert: .*/cert: false/' config.yaml;\
 	echo 'cert-host: ' >> config.yaml;\
-	cat config.yaml
+	cat config.yaml;\
+	code-server --version > /dev/null 2>&1;
 
 CMD ["code-server"]
 	
