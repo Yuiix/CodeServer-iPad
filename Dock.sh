@@ -29,12 +29,12 @@ else
 			exit 1
 		fi
 fi
-#This part of the code will create/start and stop the code server, including the options of the certificate and password
+	#This part of the code will create/start and stop the code server, including the options of the certificate and password
 
-container_id=$(docker ps -a | grep "$server_image" | awk '{print $1}')
-if [ "$comand_var" = "create" ]; then
-	echo "would you like to create a password for your server? y/n"
-	read pw_confirmation
+	container_id=$(docker ps -a | grep "$server_image" | awk '{print $1}')
+	if [ "$comand_var" = "create" ]; then
+		echo "would you like to create a password for your server? y/n"
+		read pw_confirmation
 	mkdir -p $HOME/CodeServer/share
 	mkdir -p $HOME/CodeServer/DockFile && cp Dockerfile $HOME/CodeServer/DockFile
 	echo "do you want the secure certificate? y/n"
@@ -46,7 +46,6 @@ if [ "$comand_var" = "create" ]; then
 		sed -i "s|password: no.*|password: $password/' config.yaml;\\\\|" $HOME/CodeServer/DockFile/Dockerfile
 		sed -i "s|auth: no.*|auth: password/' config.yaml;\\\\|" $HOME/CodeServer/DockFile/Dockerfile
 		echo "The pasword has been set to $password"
-		cat $HOME/CodeServer/DockFile/Dockerfile
 	elif [ "$pw_confirmation" = "n" ];then
 		echo "the password has been set to none"
 	else
@@ -59,13 +58,23 @@ if [ "$comand_var" = "create" ]; then
 	else
 		echo "Certification file wont be generated"
 	fi
-	#cat $HOME/CodeServer/DockFile/Dockerfile
 	docker build -t code-server-image $HOME/CodeServer/DockFile
 # This part of the code is to start the sever
 elif [ "$comand_var" = "start" ]; then
 	docker run --rm -d -v $HOME/CodeServer/share:/root/.local/share -v $HOME:$HOME -p 8080:8080 $server_image
-	echo "A container with a codeserver is running... give it a few seconds and you
-	will be able to log in with the following link: http:/$host_name.local:8080"
+	echo "A container with a codeserver is running... 
+	give it a few seconds and you will be able to log in with the following link: 
+	http:/$host_name.local:8080"
+	sleep 15
+	cd $HOME/CodeServer/share/code-server
+	cert_file=$(ls -la| grep "_local." | awk '{print $9}')
+	if [ -n "$cert_file" ]; then
+		cp -f $cert_file $HOME/CodeServer/Certificate
+		echo "The certificate has been created in the following path:
+		$HOME/CodeServer/Certificate"
+	else
+		echo "There is no certificate so you wont need to install it"
+	fi
 # This part of the code is to stop the container
 elif [ "$comand_var" = "stop" ]; then
 	if [ -n "$container_id" ]; then
@@ -85,8 +94,5 @@ else
 	echo "wrong command, you maybe want to use one of the following comands, 
 	create, start and stop"
 fi
-# TODO Copy the certificate to other location
-# TODO add more ports to expose if they want to
 # TODO create a utility docker for any other tool needed that wont affect the server
-# TODO create the script that will generate that docker file
 # TODO Add an option for automatic configuration right after boot theRPI or any linux machine
